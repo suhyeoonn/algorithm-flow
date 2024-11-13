@@ -34,7 +34,8 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-            <a
+            {/* TODO: 깃허브 로고, 카피라이트 */}
+            {/* <a
               className="flex items-center gap-2 hover:underline hover:underline-offset-4"
               href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
               target="_blank"
@@ -78,7 +79,7 @@ export default function RootLayout({
                 height={16}
               />
               Go to nextjs.org →
-            </a>
+            </a> */}
           </footer>
         </div>
       </body>

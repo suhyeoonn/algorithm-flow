@@ -1,52 +1,17 @@
 "use client";
+import Log, { Type } from "@/components/Log";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 const MOVE = 40 + 4; // width + gap
 const N = 10;
 
-//단계
-
-// 	•	start = 1, end = 1
-// 	•	sum += end: sum = 1
-// 	•	end++: end = 2
-// 	•	sum이 N보다 작으므로 다음 단계로 진행.
-
-// 2단계
-
-// 	•	start = 1, end = 2
-// 	•	sum += end: sum = 3 (1 + 2)
-// 	•	end++: end = 3
-// 	•	sum이 N보다 작으므로 다음 단계로 진행.
-
-// 3단계
-
-// 	•	start = 1, end = 3
-// 	•	sum += end: sum = 6 (1 + 2 + 3)
-// 	•	end++: end = 4
-// 	•	sum이 N보다 작으므로 다음 단계로 진행.
-
-// 4단계
-
-// 	•	start = 1, end = 4
-// 	•	sum += end: sum = 10 (1 + 2 + 3 + 4)
-// 	•	**sum == N**이므로 count++: count = 2
-// 	•	sum += end: sum = 15
-// 	•	end++: end = 5
-// 	•	sum이 N보다 크므로 sum에서 start를 빼기 시작합니다.
 export default function Home() {
   const [sum, setSum] = useState(0);
   const [count, setCount] = useState(1);
-  const [start, setStart] = useState(1);
-  const [end, setEnd] = useState(1);
-
-  // useEffect(() => {
-  //   let interval = setInterval(() => setEndX((value) => value + MOVE), 1000);
-
-  //   if (endX + MOVE >= MOVE * 15) clearInterval(interval);
-
-  //   return () => clearInterval(interval);
-  // }, [endX]);
+  const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(0);
+  const [log, setLog] = useState<ReactNode[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -54,64 +19,85 @@ export default function Home() {
         setCount((prevCount) => prevCount + 1);
         setSum((prevSum) => prevSum + end);
         setEnd((prevEnd) => prevEnd + 1);
+        setLog((prevLog) => [
+          ...prevLog,
+          <Log
+            type={Type["sum == N"]}
+            log={`sum += ${end};`}
+            comment={`${Array.from({ length: end }, (_, i) => i + 1).join(
+              " + "
+            )}`}
+          />,
+        ]);
       } else if (sum > N) {
         setSum((prevSum) => prevSum - start);
         setStart((prevStart) => prevStart + 1);
+        setLog((prevLog) => [
+          ...prevLog,
+          <Log
+            type={Type["sum > N"]}
+            log={`sum -= ${start}; start++;`}
+            comment={`sum: ${sum}, start: ${start + 1}`}
+          />,
+        ]);
       } else {
         setSum((prevSum) => prevSum + end);
         setEnd((prevEnd) => prevEnd + 1);
-      }
-
-      if (end >= N) {
-        clearInterval(interval);
-        console.log("최종 count:", count);
+        setLog((prevLog) => [
+          ...prevLog,
+          <Log
+            type={Type["sum < N"]}
+            log={`sum += ${end}; end++;`}
+            comment={`sum: ${sum}, end: ${end + 1}`}
+          />,
+        ]);
       }
     }, 2000);
+
+    if (start > N) {
+      clearInterval(interval);
+      console.log("최종 count:", count);
+    }
 
     return () => clearInterval(interval); // Cleanup으로 interval을 정리
   }, [end, sum, count, start]); // 필요한 상태를 의존성 배열에 추가
 
   return (
-    <div>
-      <div className="relative">
-        <motion.div
-          className="absolute top-[-50px] flex flex-col justify-center items-center left-0"
-          animate={{
-            x: (start - 1) * MOVE,
-            transition: { duration: 1 },
-          }}
-        >
-          start
-          <UpArrow />
-        </motion.div>
-        <ArrayDisplay />
-        <motion.div
-          className="absolute bottom-[-50px] flex flex-col justify-center items-center left-0"
-          animate={{
-            x: (end - 1) * MOVE,
-            transition: { duration: 1 },
-          }}
-        >
-          <DownArrow />
-          end
-        </motion.div>
+    <div className="">
+      <div className="flex justify-center">
+        <div className="relative">
+          <motion.div
+            className="absolute top-[-50px] flex flex-col justify-center items-center left-0"
+            animate={{
+              x: (start - 1) * MOVE,
+              transition: { duration: 1 },
+            }}
+          >
+            start
+            <UpArrow />
+          </motion.div>
+          <ArrayDisplay />
+          <motion.div
+            className="absolute bottom-[-50px] flex flex-col justify-center items-center left-0"
+            animate={{
+              x: (end - 1) * MOVE,
+              transition: { duration: 1 },
+            }}
+          >
+            <DownArrow />
+            end
+          </motion.div>
+        </div>
       </div>
-      <div className="mt-28">
-        sum = {sum}; start = {start}; end={end}; count={count}
+      <div className="mt-28 grid grid-cols-3 text-center gap-5">
+        <Variable label="sum" value={sum} />
+        <Variable label="start" value={start} />
+        <Variable label="end" value={end} />
       </div>
-      <div className="flex gap-10 mt-10">
-        <div>
-          <h3>sum - N: </h3>
-          <p>sum = sum - start; start++;</p>
-        </div>
-        <div>
-          <h3>sum - N: </h3>
-          <p>sum = end++; sum = sum + end;</p>
-        </div>
-        <div>
-          <h3>sum == N: </h3>
-          <p>sum = end++; sum = sum + end; count++</p>
-        </div>
+      <div className="flex flex-col gap-2 mt-10">
+        {log.map((l, i) => (
+          <div key={i}>{l}</div>
+        ))}
       </div>
     </div>
   );
@@ -169,11 +155,29 @@ const UpArrow = () => {
       stroke="currentColor"
       className="size-6 text-sky-500"
     >
+      <defs>
+        <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="#3b82f6" />
+        </linearGradient>
+      </defs>
+
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
       />
     </svg>
+  );
+};
+
+const Variable = ({ label, value }: { label: string; value: number }) => {
+  return (
+    <div className="border border-gray-500 py-2 rounded-lg">
+      <h3 className="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-violet-500">
+        {label}
+      </h3>
+      <p className="text-lg">{value}</p>
+    </div>
   );
 };
