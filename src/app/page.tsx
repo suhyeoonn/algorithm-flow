@@ -1,101 +1,179 @@
-import Image from "next/image";
+"use client";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
+const MOVE = 40 + 4; // width + gap
+const N = 10;
+
+//단계
+
+// 	•	start = 1, end = 1
+// 	•	sum += end: sum = 1
+// 	•	end++: end = 2
+// 	•	sum이 N보다 작으므로 다음 단계로 진행.
+
+// 2단계
+
+// 	•	start = 1, end = 2
+// 	•	sum += end: sum = 3 (1 + 2)
+// 	•	end++: end = 3
+// 	•	sum이 N보다 작으므로 다음 단계로 진행.
+
+// 3단계
+
+// 	•	start = 1, end = 3
+// 	•	sum += end: sum = 6 (1 + 2 + 3)
+// 	•	end++: end = 4
+// 	•	sum이 N보다 작으므로 다음 단계로 진행.
+
+// 4단계
+
+// 	•	start = 1, end = 4
+// 	•	sum += end: sum = 10 (1 + 2 + 3 + 4)
+// 	•	**sum == N**이므로 count++: count = 2
+// 	•	sum += end: sum = 15
+// 	•	end++: end = 5
+// 	•	sum이 N보다 크므로 sum에서 start를 빼기 시작합니다.
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [sum, setSum] = useState(0);
+  const [count, setCount] = useState(1);
+  const [start, setStart] = useState(1);
+  const [end, setEnd] = useState(1);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // useEffect(() => {
+  //   let interval = setInterval(() => setEndX((value) => value + MOVE), 1000);
+
+  //   if (endX + MOVE >= MOVE * 15) clearInterval(interval);
+
+  //   return () => clearInterval(interval);
+  // }, [endX]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (sum === N) {
+        setCount((prevCount) => prevCount + 1);
+        setSum((prevSum) => prevSum + end);
+        setEnd((prevEnd) => prevEnd + 1);
+      } else if (sum > N) {
+        setSum((prevSum) => prevSum - start);
+        setStart((prevStart) => prevStart + 1);
+      } else {
+        setSum((prevSum) => prevSum + end);
+        setEnd((prevEnd) => prevEnd + 1);
+      }
+
+      if (end >= N) {
+        clearInterval(interval);
+        console.log("최종 count:", count);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval); // Cleanup으로 interval을 정리
+  }, [end, sum, count, start]); // 필요한 상태를 의존성 배열에 추가
+
+  return (
+    <div>
+      <div className="relative">
+        <motion.div
+          className="absolute top-[-50px] flex flex-col justify-center items-center left-0"
+          animate={{
+            x: (start - 1) * MOVE,
+            transition: { duration: 1 },
+          }}
+        >
+          start
+          <UpArrow />
+        </motion.div>
+        <ArrayDisplay />
+        <motion.div
+          className="absolute bottom-[-50px] flex flex-col justify-center items-center left-0"
+          animate={{
+            x: (end - 1) * MOVE,
+            transition: { duration: 1 },
+          }}
+        >
+          <DownArrow />
+          end
+        </motion.div>
+      </div>
+      <div className="mt-28">
+        sum = {sum}; start = {start}; end={end}; count={count}
+      </div>
+      <div className="flex gap-10 mt-10">
+        <div>
+          <h3>sum - N: </h3>
+          <p>sum = sum - start; start++;</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div>
+          <h3>sum - N: </h3>
+          <p>sum = end++; sum = sum + end;</p>
+        </div>
+        <div>
+          <h3>sum == N: </h3>
+          <p>sum = end++; sum = sum + end; count++</p>
+        </div>
+      </div>
     </div>
   );
 }
+
+const ArrayDisplay = () => {
+  const array = Array.from({ length: N }, (_, i) => i + 1);
+  return (
+    <div className="flex gap-1">
+      {array.map((n) => (
+        <div
+          key={n}
+          className="w-10 h-10 leading-10 text-center border border-gray-400 rounded-lg"
+        >
+          {n}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const DownArrow = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="1.5"
+      stroke="url(#gradient)"
+      className="size-6"
+    >
+      <defs>
+        <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="#3b82f6" />
+        </linearGradient>
+      </defs>
+
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+      />
+    </svg>
+  );
+};
+
+const UpArrow = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="bg-color-red"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="size-6 text-sky-500"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+      />
+    </svg>
+  );
+};
