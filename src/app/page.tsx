@@ -3,15 +3,23 @@ import Log, { Type } from "@/components/Log";
 import { motion } from "framer-motion";
 import { ReactNode, useEffect, useState } from "react";
 
-const MOVE = 40 + 4; // width + gap
+const MOVE = 40 + 5; // width + gap
 const N = 10;
-
+const numbers = Array.from({ length: N }, (_, i) => i + 1);
 export default function Home() {
   const [sum, setSum] = useState(0);
   const [count, setCount] = useState(1);
-  const [start, setStart] = useState(0);
-  const [end, setEnd] = useState(0);
+  const [start, setStart] = useState(1);
+  const [end, setEnd] = useState(1);
   const [log, setLog] = useState<ReactNode[]>([]);
+
+  const getSums = (start: number, end: number) =>
+    numbers.slice(start, end).join(" + ");
+
+  const getSumHistory = (start: number, end: number) =>
+    getSums(start, end) +
+    " = " +
+    numbers.slice(start, end).reduce((sum, n) => sum + n);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -23,10 +31,10 @@ export default function Home() {
           ...prevLog,
           <Log
             type={Type["sum == N"]}
-            log={`sum += ${end};`}
-            comment={`${Array.from({ length: end }, (_, i) => i + 1).join(
-              " + "
-            )}`}
+            log={`sum += ${end}; end++`}
+            comment={`sum: ${getSumHistory(start - 1, end)}, end: ${end} -> ${
+              end + 1
+            }`}
           />,
         ]);
       } else if (sum > N) {
@@ -37,10 +45,12 @@ export default function Home() {
           <Log
             type={Type["sum > N"]}
             log={`sum -= ${start}; start++;`}
-            comment={`sum: ${sum}, start: ${start + 1}`}
+            comment={`sum: ${getSumHistory(start, end)}, start: ${start} -> ${
+              start + 1
+            }`}
           />,
         ]);
-      } else {
+      } else if (sum < N && end < N) {
         setSum((prevSum) => prevSum + end);
         setEnd((prevEnd) => prevEnd + 1);
         setLog((prevLog) => [
@@ -48,13 +58,15 @@ export default function Home() {
           <Log
             type={Type["sum < N"]}
             log={`sum += ${end}; end++;`}
-            comment={`sum: ${sum}, end: ${end + 1}`}
+            comment={`sum: ${getSumHistory(start - 1, end)}, end: ${end} -> ${
+              end + 1
+            }`}
           />,
         ]);
       }
     }, 2000);
 
-    if (start > N) {
+    if (start >= N) {
       clearInterval(interval);
       console.log("최종 count:", count);
     }
@@ -94,6 +106,7 @@ export default function Home() {
         <Variable label="start" value={start} />
         <Variable label="end" value={end} />
       </div>
+      <div className="text-gray-500">SUM: {getSums(start - 1, end)}</div>
       <div className="flex flex-col gap-2 mt-10">
         {log.map((l, i) => (
           <div key={i}>{l}</div>
