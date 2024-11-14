@@ -104,7 +104,7 @@ export default function Home() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (end > N) {
+      if (start == N) {
         clearInterval(interval);
         return;
       }
@@ -116,7 +116,7 @@ export default function Home() {
       } else if (sum < N) {
         dispatch({ type: 2 });
       }
-    }, 1000);
+    }, 1500);
 
     return () => clearInterval(interval); // Cleanup으로 interval을 정리
   }, [end, sum, start]);
