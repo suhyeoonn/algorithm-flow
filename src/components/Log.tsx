@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
 export enum Type {
   "sum == N",
@@ -6,44 +6,21 @@ export enum Type {
   "sum < N",
 }
 interface Props {
-  type: Type;
-  log: string;
-  comment: string;
+  type?: Type;
+  log?: string;
+  comment?: string;
+  children: ReactNode;
 }
-const Log = ({ type, log, comment }: Props) => {
-  let chip = null;
-  switch (type) {
-    case Type["sum == N"]:
-      chip = (
-        <span className="inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium text-red-300 ring-1 ring-inset ring-red-300">
-          {"sum == N"}
-        </span>
-      );
-      break;
-
-    case Type["sum > N"]:
-      chip = (
-        <span className="inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-300">
-          {"sum > N"}
-        </span>
-      );
-      break;
-    default:
-      chip = (
-        <span className="inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium text-green-300 ring-1 ring-inset ring-green-300">
-          {"sum < N"}
-        </span>
-      );
-      break;
-  }
+const Log = ({ children }: Props) => {
   return (
-    <div className="flex gap-2">
-      {chip}
+    <div className="flex gap-2 text-gray-300">
+      {/* {chip}
       <span>{log}</span>
       <span className="text-gray-500">
         {"//"}
         {comment}
-      </span>
+      </span> */}
+      {children}
     </div>
   );
 };
