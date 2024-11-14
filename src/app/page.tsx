@@ -3,7 +3,7 @@ import ArrayDisplay from "@/components/ArrayDisplay";
 import { BlueChip, GreenChip, RedChip } from "@/components/Chip";
 import DownArrow from "@/components/icons/DownArrow";
 import UpArrow from "@/components/icons/UpArrow";
-import Log, { Type } from "@/components/Log";
+import Log from "@/components/Log";
 import { motion } from "framer-motion";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -48,7 +48,11 @@ export default function Home() {
     }
 
     setLog((prevLog) => {
-      const newLog = [<span>sum: {getSumHistory(start - 1, end)}</span>];
+      const newLog = [
+        <span key={`${start}_${end}`}>
+          sum: {getSumHistory(start - 1, end)}
+        </span>,
+      ];
       if (getSum(start - 1, end) === N) {
         newLog.push(<RedChip>sum == N</RedChip>);
       } else if (getSum(start - 1, end) > N) {
@@ -56,7 +60,7 @@ export default function Home() {
       } else {
         newLog.push(<GreenChip>{"sum < N"}</GreenChip>);
       }
-      return [...prevLog, <Log>{...newLog}</Log>];
+      return [...prevLog, <Log key={`${start}_${end}`}>{...newLog}</Log>];
     });
 
     return () => clearInterval(interval); // Cleanup으로 interval을 정리
