@@ -1,14 +1,12 @@
 "use client";
-import ArrayDisplay from "@/components/ArrayDisplay";
+import { ArrayAnimation } from "@/components/ArrayAnimation";
 import { BlueChip, GreenChip, RedChip } from "@/components/Chip";
-import DownArrow from "@/components/icons/DownArrow";
-import UpArrow from "@/components/icons/UpArrow";
+
 import Log from "@/components/Log";
-import { motion } from "framer-motion";
+import { Variable } from "@/components/Variable";
 import { ReactNode, useEffect, useReducer } from "react";
 
-const MOVE = 40 + 5; // width + gap
-const N = 10; // TODO: 15로 변경하면 로그가 이상하게 표시된다
+const N = 10;
 const numbers = Array.from({ length: N }, (_, i) => i + 1);
 
 interface State {
@@ -18,10 +16,18 @@ interface State {
   log: ReactNode[];
 }
 
-type Action = { type: 0 } | { type: 1 } | { type: 2 };
+enum ActionType {
+  EQUAL,
+  GREATER_THAN,
+  LESS_THAN,
+}
+type Action =
+  | { type: ActionType.EQUAL }
+  | { type: ActionType.GREATER_THAN }
+  | { type: ActionType.LESS_THAN };
 
 const initialState: State = {
-  sum: 0,
+  sum: 1,
   start: 1,
   end: 1,
   log: [],
@@ -48,51 +54,56 @@ const getChip = (start: number, end: number) => {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 0:
+    case ActionType.EQUAL: {
+      const nextEnd = state.end + 1;
       return {
         ...state,
-        sum: state.sum + state.end,
-        end: state.end + 1,
+        sum: state.sum + nextEnd,
+        end: nextEnd,
         log: [
           ...state.log,
-          <Log key={`${state.start}_${state.end}`}>
+          <Log key={`${state.start}_${nextEnd}`}>
             <>
-              <span>sum: {getSumHistory(state.start - 1, state.end)}</span>
-              {getChip(state.start, state.end)}
+              <span>sum: {getSumHistory(state.start - 1, nextEnd)}</span>
+              {getChip(state.start, nextEnd)}
             </>
           </Log>,
         ],
       };
-    case 1:
+    }
+    case ActionType.GREATER_THAN:
+      const nextStart = state.start + 1;
       return {
         ...state,
         sum: state.sum - state.start,
-        start: state.start + 1,
+        start: nextStart,
         log: [
           ...state.log,
-          <Log key={`${state.start}_${state.end}`}>
+          <Log key={`${nextStart}_${state.end}`}>
             <>
-              <span>sum: {getSumHistory(state.start - 1, state.end)}</span>
-              {getChip(state.start, state.end)}
+              <span>sum: {getSumHistory(state.start, state.end)}</span>
+              {getChip(nextStart, state.end)}
             </>
           </Log>,
         ],
       };
-    case 2:
+    case ActionType.LESS_THAN: {
+      const nextEnd = state.end + 1;
       return {
         ...state,
-        sum: state.sum + state.end,
-        end: state.end + 1,
+        sum: state.sum + nextEnd,
+        end: nextEnd,
         log: [
           ...state.log,
-          <Log key={`${state.start}_${state.end}`}>
+          <Log key={`${state.start}_${nextEnd}`}>
             <>
-              <span>sum: {getSumHistory(state.start - 1, state.end)}</span>
-              {getChip(state.start, state.end)}
+              <span>sum: {getSumHistory(state.start - 1, nextEnd)}</span>
+              {getChip(state.start, nextEnd)}
             </>
           </Log>,
         ],
       };
+    }
     default:
       return state;
   }
@@ -103,6 +114,10 @@ export default function Home() {
   const { sum, start, end, log } = state;
 
   useEffect(() => {
+    dispatch({ type: 2 }); // 초기화 작업
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (start == N) {
         clearInterval(interval);
@@ -110,11 +125,11 @@ export default function Home() {
       }
 
       if (sum === N) {
-        dispatch({ type: 0 });
+        dispatch({ type: ActionType.EQUAL });
       } else if (sum > N) {
-        dispatch({ type: 1 });
+        dispatch({ type: ActionType.GREATER_THAN });
       } else if (sum < N) {
-        dispatch({ type: 2 });
+        dispatch({ type: ActionType.LESS_THAN });
       }
     }, 1500);
 
@@ -124,7 +139,7 @@ export default function Home() {
   return (
     <div className="">
       <div className="flex justify-center">
-        <ArrayAnimation start={start} end={end} />
+        <ArrayAnimation start={start} end={end} N={N} />
       </div>
       <div className="mt-28 grid grid-flow-col auto-cols-fr text-center gap-5">
         <Variable label="N" value={N} />
@@ -135,7 +150,7 @@ export default function Home() {
       <div className="text-gray-500">sum: {formatRangeSum(start - 1, end)}</div>
       <div className="flex flex-col gap-2 mt-10">
         <h2 className="text-xl font-bold border-b border-gray-700 pb-2 text-gray-200">
-          Log
+          Logs
         </h2>
         {log.map((l, i) => (
           <div key={i}>{l}</div>
@@ -144,42 +159,3 @@ export default function Home() {
     </div>
   );
 }
-
-const ArrayAnimation = ({ start, end }: { start: number; end: number }) => {
-  return (
-    <div className="relative">
-      <motion.div
-        className="absolute top-[-50px] flex flex-col justify-center items-center left-[1px]"
-        animate={{
-          x: (start - 1) * MOVE,
-          transition: { duration: 1 },
-        }}
-      >
-        start
-        <UpArrow />
-      </motion.div>
-      <ArrayDisplay length={N + 1} disabledNum={N + 1} />
-      <motion.div
-        className="absolute bottom-[-50px] flex flex-col justify-center items-center left-[5px]"
-        animate={{
-          x: (end - 1) * MOVE,
-          transition: { duration: 1 },
-        }}
-      >
-        <DownArrow />
-        end
-      </motion.div>
-    </div>
-  );
-};
-
-const Variable = ({ label, value }: { label: string; value: number }) => {
-  return (
-    <div className="border border-gray-500 py-2 rounded-lg">
-      <h3 className="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-violet-500">
-        {label}
-      </h3>
-      <p className="text-lg">{value}</p>
-    </div>
-  );
-};
